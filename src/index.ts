@@ -3,7 +3,8 @@ import {buildRunner, IBuildOpts} from 'process-rerun';
 import {getSpecFilesList} from './testlist';
 import {buildCommand} from './command';
 import {isRegExp} from './utils';
-import {mochaJasminePattern} from './mocha.jasmine.grepper';
+import {mochaJasminePatternDoubleQuote, mochaJasminePatternSingleQuote} from './mocha.jasmine.grepper';
+
 
 function buildExecutor(pathToConfig: string, pathToSpecsFolder: string | string[], byItSpec: {mocha?: RegExp, jasmine?: RegExp} = {}) {
   if (!fs.existsSync(pathToConfig)) {
@@ -21,21 +22,22 @@ function buildExecutor(pathToConfig: string, pathToSpecsFolder: string | string[
 
       let commands = [];
 
-      if (byItSpec.mocha) {
+      if (byItSpec.mocha || byItSpec.mocha) {
+        const grepArgument = byItSpec.mocha ? '--mochaOpts.grep' : '--jasmineNodeOpts.grep';
         if (!isRegExp(byItSpec.mocha)) {
           throw new Error(`byItSpec.mocha should be regex, current value is - ${byItSpec.mocha}`)
         }
         files.forEach((specFilePath) => {
           const content = fs.readFileSync(specFilePath, {encoding: 'utf8'});
-          const grepOpts = content.match(byItSpec.mocha)
+          const grepOpts = content.match(byItSpec.mocha);
           if (grepOpts) {
             grepOpts.forEach((itName) => {
-              runArgs['--mochaOpts.grep'] = `'${itName}'`;
-              const cmd = buildCommand(pathToConfig, specFilePath, runArgs, envVars)
+              runArgs[grepArgument] = `'${itName}'`;
+              const cmd = buildCommand(pathToConfig, specFilePath, runArgs, envVars);
               commands.push(cmd);
-            })
+            });
           }
-        })
+        });
       } else {
         commands.push(...files.map((specFilePath) => {
           return buildCommand(pathToConfig, specFilePath, runArgs, envVars);
@@ -55,5 +57,7 @@ function buildExecutor(pathToConfig: string, pathToSpecsFolder: string | string[
 }
 
 export {
-  buildExecutor
+  buildExecutor,
+  mochaJasminePatternDoubleQuote,
+  mochaJasminePatternSingleQuote
 }
