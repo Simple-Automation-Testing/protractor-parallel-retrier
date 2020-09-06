@@ -1,6 +1,6 @@
 {
   "name": "protractor-parallel-retrier",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "",
   "main": "./built/index.js",
   "scripts": {
@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/Simple-Automation-Testing/protractor-parallel-retrier#readme",
   "dependencies": {
-    "process-rerun": "^0.1.8"
+    "process-rerun": "^0.1.9"
   },
   "devDependencies": {
     "@types/mocha": "^8.0.3",
