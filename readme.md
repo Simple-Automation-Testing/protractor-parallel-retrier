@@ -11,25 +11,56 @@
 ### usage
 
 ```js
-const {buildExecutor, mochaJasminePatternSingleQuote} = require('protractor-parallel-retrier');
+const {buildExecutor} = require('protractor-parallel-retrier');
 
-executeParallel()
-async function executeParallel() {
+
+executeAsQueue();
+async function executeAsQueue() {
+
+  const testCaseRegPattern = /(?<=it\(').+(?=')/ig;
   const cwd = process.cwd();
-  const result = await buildExecutor(
-      resolve(cwd, './protractor.conf.js'),
-      resolve(cwd, './specs'),
-      {mocha: mochaJasminePatternSingleQuote}
-    )
-    .command(
-      {'--mochaOpts.timeout': '100000', '--procTime': '1000', '--mochaOpts.reporter': 'mocha-allure2-reporter'},
-      {'TESTS': 'test_example'}
-    )
-    .executor({attemptsCount: 2, maxThreads: 1, debugProcess: true})
+
+  const result = await buildExecutor(resolve(cwd, './protractor.conf.js'), resolve(cwd, './built/specs'))
+    .asQueue(testCaseRegPattern, ['test case it name 1', 'test case it name 1'])
+    .command({'--arg1': 'value_arg_1'}, {LOG_LEVEL: 'console'})
+    .executor({attemptsCount: 5, maxThreads: 1, debugProcess: true, longestProcessTime: 60 * 1000, pollTime: 100})
     .execute();
 
-  if(result.retriable.length) {
-    // this is fail
+  console.log(result);
+  if(result.retriable.length || result.notRetriable.length) {
+    process.exit(1);
+  }
+}
+
+
+executeByFile();
+async function executeByFile() {
+  const cwd = process.cwd();
+  const result = await buildExecutor(resolve(cwd, './protractor.conf.js'), resolve(cwd, './built/specs'))
+    .byFile()
+    .command({'--arg1': 'value_arg_1'}, {LOG_LEVEL: 'console'})
+    .executor({attemptsCount: 2, maxThreads: 5, longestProcessTime: 60 * 1000, pollTime: 100})
+    .execute();
+
+  console.log(result);
+  if(result.retriable.length || result.notRetriable.length) {
+    process.exit(1);
+  }
+}
+
+
+executeByIt();
+async function executeByIt() {
+  const cwd = process.cwd();
+  const testCaseRegPattern = /(?<=it\(').+(?=')/ig;
+  const result = await buildExecutor(resolve(cwd, './protractor.conf.js'), resolve(cwd, './built/specs'))
+    .byIt(testCaseRegPattern)
+    .command({'--arg1': 'value_arg_1'}, {LOG_LEVEL: 'console'})
+    .executor({attemptsCount: 5, maxThreads: 2, debugProcess: true, longestProcessTime: 60 * 1000, pollTime: 100})
+    .execute();
+
+  console.log(result);
+  if(result.retriable.length || result.notRetriable.length) {
     process.exit(1);
   }
 }

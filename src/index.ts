@@ -87,7 +87,16 @@ function buildExecutor(pathToConfig: string, configPath: string | string[]) {
   if (!fs.existsSync(pathToConfig)) {
     throw new Error(`${pathToConfig} path to config`);
   }
-  const {framework = 'jasmine'} = require(pathToConfig);
+
+  let framework = null;
+  const confgiModule = require(pathToConfig);
+  if (confgiModule.config && confgiModule.config.framework) {
+    framework = confgiModule.config.framework;
+  } else if (confgiModule.framework) {
+    framework = confgiModule.framework;
+  } else if (confgiModule.conf && confgiModule.conf.framework) {
+    framework = confgiModule.conf.framework;
+  }
 
   if (!supportedFrameworks.includes(framework)) {
     throw new Error(`
