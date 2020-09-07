@@ -2,8 +2,25 @@ import * as fs from 'fs';
 import {buildRunner, IBuildOpts} from 'process-rerun';
 import {getSpecFilesList} from './testlist';
 import {buildCommand} from './command';
-import {isRegExp} from './utils';
-import {mochaJasminePatternDoubleQuote, mochaJasminePatternSingleQuote} from './mocha.jasmine.grepper';
+import {mochaJasminePatternDoubleQuote, mochaJasminePatternSingleQuote, mochaJasminePatternApostrophe} from './mocha.jasmine.grepper';
+
+function getPattern(content: string) {
+  const itPattern = /(?<=it\()./ig
+  const matched = content.match(itPattern);
+  if (matched) {
+    const char = matched[0];
+    switch (char) {
+      case "'":
+        return mochaJasminePatternSingleQuote;
+      case '"':
+        return mochaJasminePatternDoubleQuote;
+      case '`':
+        return mochaJasminePatternApostrophe;
+      default:
+        return mochaJasminePatternDoubleQuote;
+    }
+  }
+}
 
 function getGrepArgument(framework) {
   switch (framework) {
@@ -19,6 +36,7 @@ function getGrepArgument(framework) {
 interface IOpts {
   pattern?: RegExp;
   queue?: string[];
+  by?: 'it' | 'queue';
   grepArgument?: '--mochaOpts.grep' | '--jasmineNodeOpts.grep';
 }
 
@@ -38,10 +56,13 @@ function next(configPath, specsDirPath, opts: IOpts = {}) {
         envVars = {};
       }
       let commands = [];
-      if (opts.pattern && opts.queue) {
+      if (opts.by === 'queue') {
+
+
         for (const queued of opts.queue) {
           files.forEach((specFilePath) => {
             const content = fs.readFileSync(specFilePath, {encoding: 'utf8'});
+            opts.pattern = opts.pattern || getPattern(content);
             const grepOpts = content.match(opts.pattern as RegExp);
             if (grepOpts) {
               const itName = grepOpts.find((itName) => itName === queued);
@@ -53,9 +74,10 @@ function next(configPath, specsDirPath, opts: IOpts = {}) {
             }
           })
         }
-      } else if (opts.pattern) {
+      } else if (opts.by === 'it') {
         files.forEach((specFilePath) => {
           const content = fs.readFileSync(specFilePath, {encoding: 'utf8'});
+          opts.pattern = opts.pattern || getPattern(content);
           const grepOpts = content.match(opts.pattern as RegExp);
           if (grepOpts) {
             grepOpts.forEach((itName) => {
@@ -106,23 +128,30 @@ function buildExecutor(pathToConfig: string, configPath: string | string[]) {
     `);
   }
   return {
-    byIt: function(pattern: RegExp) {
-      if (!isRegExp(pattern)) {
-        throw new Error(`pattern should be regexp`);
-      }
-      return next(pathToConfig, configPath, {pattern, grepArgument: getGrepArgument(framework)});
+    byIt: function(pattern?: RegExp) {
+      return next(pathToConfig, configPath, {
+        pattern,
+        grepArgument: getGrepArgument(framework),
+        by: 'it',
+      });
     },
     byFile: function() {
       return next(pathToConfig, configPath);
     },
-    asQueue: function(pattern: RegExp, queue: string[]) {
-      if (!isRegExp(pattern)) {
-        throw new Error(`pattern should be regexp`);
+    asQueue: function(patternOrQueue?: RegExp | string[], queue?: string[]) {
+      if (arguments.length === 1) {
+        queue = patternOrQueue as string[];
+        patternOrQueue = null;
       }
       if (!Array.isArray(queue)) {
         throw new Error(`queue should be string[]`);
       }
-      return next(pathToConfig, configPath, {pattern, grepArgument: getGrepArgument(framework), queue});
+      return next(pathToConfig, configPath, {
+        pattern: patternOrQueue as any,
+        grepArgument: getGrepArgument(framework),
+        queue,
+        by: 'queue',
+      });
     }
   }
 }

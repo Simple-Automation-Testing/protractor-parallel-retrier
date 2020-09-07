@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/Simple-Automation-Testing/protractor-parallel-retrier#readme",
   "dependencies": {
-    "process-rerun": "^0.1.9"
+    "process-rerun": "^0.1.10"
   },
   "devDependencies": {
     "@types/mocha": "^8.0.3",

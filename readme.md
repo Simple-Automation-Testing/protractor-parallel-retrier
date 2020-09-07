@@ -8,11 +8,12 @@
 
 ### The purpose of this library is - build simple and flexible interface for protractor framework parallel execution with rerun (on fail) possibility
 
+[usage](#usage)
+
 ### usage
 
 ```js
 const {buildExecutor} = require('protractor-parallel-retrier');
-
 
 executeAsQueue();
 async function executeAsQueue() {
@@ -21,9 +22,9 @@ async function executeAsQueue() {
   const cwd = process.cwd();
 
   const result = await buildExecutor(resolve(cwd, './protractor.conf.js'), resolve(cwd, './built/specs'))
-    .asQueue(testCaseRegPattern, ['test case it name 1', 'test case it name 1'])
-    .command({'--arg1': 'value_arg_1'}, {LOG_LEVEL: 'console'})
-    .executor({attemptsCount: 5, maxThreads: 1, debugProcess: true, longestProcessTime: 60 * 1000, pollTime: 100})
+    .asQueue(testCaseRegPattern, ['test case it name 1', 'test case it name 2', 'test case it name 3'])
+    .command({'--process-argument': 'process-argument-value'}, {ENV_VARIABLE: 'en-varialbe-value'})
+    .executor({attemptsCount: 2, maxThreads: 1, logLevel: 'VERBOSE', longestProcessTime: 60 * 1000, pollTime: 100})
     .execute();
 
   console.log(result);
@@ -32,14 +33,31 @@ async function executeAsQueue() {
   }
 }
 
+executeOnlyRequiredCases();
+async function executeAsQueue() {
+
+  const testCaseRegPattern = /(?<=it\(').+(?=')/ig;
+  const cwd = process.cwd();
+
+  const result = await buildExecutor(resolve(cwd, './protractor.conf.js'), resolve(cwd, './built/specs'))
+    .asQueue(testCaseRegPattern, ['test case it name 1', 'test case it name 2', 'test case it name 3'])
+    .command({'--process-argument': 'process-argument-value'}, {ENV_VARIABLE: 'en-varialbe-value'})
+    .executor({attemptsCount: 2, maxThreads: 10, logLevel: 'VERBOSE', longestProcessTime: 60 * 1000, pollTime: 100})
+    .execute();
+
+  console.log(result);
+  if(result.retriable.length || result.notRetriable.length) {
+    process.exit(1);
+  }
+}
 
 executeByFile();
 async function executeByFile() {
   const cwd = process.cwd();
   const result = await buildExecutor(resolve(cwd, './protractor.conf.js'), resolve(cwd, './built/specs'))
     .byFile()
-    .command({'--arg1': 'value_arg_1'}, {LOG_LEVEL: 'console'})
-    .executor({attemptsCount: 2, maxThreads: 5, longestProcessTime: 60 * 1000, pollTime: 100})
+    .command({'--process-argument': 'process-argument-value'}, {ENV_VARIABLE: 'en-varialbe-value'})
+    .executor({attemptsCount: 2, maxThreads: 5, logLevel: 'VERBOSE', longestProcessTime: 60 * 1000, pollTime: 100})
     .execute();
 
   console.log(result);
@@ -55,8 +73,8 @@ async function executeByIt() {
   const testCaseRegPattern = /(?<=it\(').+(?=')/ig;
   const result = await buildExecutor(resolve(cwd, './protractor.conf.js'), resolve(cwd, './built/specs'))
     .byIt(testCaseRegPattern)
-    .command({'--arg1': 'value_arg_1'}, {LOG_LEVEL: 'console'})
-    .executor({attemptsCount: 5, maxThreads: 2, debugProcess: true, longestProcessTime: 60 * 1000, pollTime: 100})
+    .command({'--process-argument': 'process-argument-value'}, {ENV_VARIABLE: 'en-varialbe-value'})
+    .executor({attemptsCount: 2, maxThreads: 2, logLevel: 'VERBOSE', longestProcessTime: 60 * 1000, pollTime: 100})
     .execute();
 
   console.log(result);

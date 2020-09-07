@@ -1,7 +1,9 @@
-const mochaJasminePatternSingleQuote = new RegExp(`(?<=it\\(')(.*)(\\')`, 'ig');
-const mochaJasminePatternDoubleQuote = new RegExp(`(?<=it\\(")(.*)(\\")`, 'ig');
+const mochaJasminePatternSingleQuote = /(?<=it\(').+(?=')/ig;
+const mochaJasminePatternDoubleQuote = /(?<=it\(").+(?=")/ig;
+const mochaJasminePatternApostrophe = /(?<=it\(`).+(?=`)/ig;
 
 export {
   mochaJasminePatternSingleQuote,
-  mochaJasminePatternDoubleQuote
+  mochaJasminePatternDoubleQuote,
+  mochaJasminePatternApostrophe
 }
