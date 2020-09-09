@@ -40,7 +40,7 @@ interface IOpts {
   grepArgument?: '--mochaOpts.grep' | '--jasmineNodeOpts.grep';
 }
 
-function next(configPath, specsDirPath, opts: IOpts = {}) {
+function next(specFolderPath, specsDirPath, opts: IOpts = {}) {
   if (!Array.isArray(specsDirPath) && !fs.existsSync(specsDirPath)) {
     throw new Error(`${specsDirPath} path to specs`);
   }
@@ -68,7 +68,7 @@ function next(configPath, specsDirPath, opts: IOpts = {}) {
               const itName = grepOpts.find((itName) => itName === queued);
               if (itName) {
                 runArgs[opts.grepArgument] = `'${itName}'`;
-                const cmd = buildCommand(configPath, specFilePath, runArgs, envVars);
+                const cmd = buildCommand(specFolderPath, specFilePath, runArgs, envVars);
                 commands.push(cmd);
               }
             }
@@ -82,14 +82,14 @@ function next(configPath, specsDirPath, opts: IOpts = {}) {
           if (grepOpts) {
             grepOpts.forEach((itName) => {
               runArgs[opts.grepArgument] = `'${itName}'`;
-              const cmd = buildCommand(configPath, specFilePath, runArgs, envVars);
+              const cmd = buildCommand(specFolderPath, specFilePath, runArgs, envVars);
               commands.push(cmd);
             });
           }
         });
       } else {
         commands.push(...files.map((specFilePath) => {
-          return buildCommand(configPath, specFilePath, runArgs, envVars);
+          return buildCommand(specFolderPath, specFilePath, runArgs, envVars);
         }));
       }
       return {
@@ -104,7 +104,7 @@ function next(configPath, specsDirPath, opts: IOpts = {}) {
   }
 }
 
-function buildExecutor(pathToConfig: string, configPath: string | string[]) {
+function buildExecutor(pathToConfig: string, specFolderPath: string | string[]) {
   const supportedFrameworks = ['jasmine', 'mocha', 'jasmine2']
   if (!fs.existsSync(pathToConfig)) {
     throw new Error(`${pathToConfig} path to config`);
@@ -129,14 +129,14 @@ function buildExecutor(pathToConfig: string, configPath: string | string[]) {
   }
   return {
     byIt: function(pattern?: RegExp) {
-      return next(pathToConfig, configPath, {
+      return next(pathToConfig, specFolderPath, {
         pattern,
         grepArgument: getGrepArgument(framework),
         by: 'it',
       });
     },
     byFile: function() {
-      return next(pathToConfig, configPath);
+      return next(pathToConfig, specFolderPath);
     },
     asQueue: function(patternOrQueue?: RegExp | string[], queue?: string[]) {
       if (arguments.length === 1) {
@@ -146,7 +146,7 @@ function buildExecutor(pathToConfig: string, configPath: string | string[]) {
       if (!Array.isArray(queue)) {
         throw new Error(`queue should be string[]`);
       }
-      return next(pathToConfig, configPath, {
+      return next(pathToConfig, specFolderPath, {
         pattern: patternOrQueue as any,
         grepArgument: getGrepArgument(framework),
         queue,

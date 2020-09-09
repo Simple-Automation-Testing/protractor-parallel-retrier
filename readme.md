@@ -155,8 +155,8 @@ arguments | description
 
 arguments | description
 --- | ---
-**`processArgs`** | Type: `undefined` | `null` | `{[prop: string]: string}` <br> Object with required process argumentss, use format prop name with - or --, example '--prop' or '-p'
-**`processEnvVars`** | Type: `undefined` | `null` | `{[prop: string]: string}` <br> Object with required process env variables, use format prop name upper snake_case, LOG_LEVEL
+**`processArgs`** | Type: `undefined` or `null` or `{[prop: string]: string}` <br> Object with required process argumentss, use format prop name with - or --, example '--prop' or '-p'
+**`processEnvVars`** | Type: `undefined` or `null` or `{[prop: string]: string}` <br> Object with required process env variables, use format prop name upper snake_case, LOG_LEVEL
 
 **`returns {executor: function}`**
 
