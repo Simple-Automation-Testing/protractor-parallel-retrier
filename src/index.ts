@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import {buildRunner, IBuildOpts} from 'process-rerun';
+import {getReruner, IBuildOpts} from 'process-rerun';
 import {getSpecFilesList} from './testlist';
 import {buildCommand} from './command';
 import {mochaJasminePatternDoubleQuote, mochaJasminePatternSingleQuote, mochaJasminePatternApostrophe} from './mocha.jasmine.grepper';
@@ -94,7 +94,7 @@ function next(specFolderPath, specsDirPath, opts: IOpts = {}) {
       }
       return {
         executor: function(runnerOpts: IBuildOpts): {execute: () => Promise<{notRetriable: string[], retriable: string[]}>} {
-          const runner = buildRunner(runnerOpts);
+          const runner = getReruner(runnerOpts);
           return {
             execute: () => runner(commands)
           }

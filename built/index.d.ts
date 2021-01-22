@@ -1,6 +1,6 @@
 import { IBuildOpts } from 'process-rerun';
 import { mochaJasminePatternDoubleQuote, mochaJasminePatternSingleQuote } from './mocha.jasmine.grepper';
-declare function buildExecutor(pathToConfig: string, configPath: string | string[]): {
+declare function buildExecutor(pathToConfig: string, specFolderPath: string | string[]): {
     byIt: (pattern?: RegExp) => {
         command: (runArgs?: {
             [k: string]: string;

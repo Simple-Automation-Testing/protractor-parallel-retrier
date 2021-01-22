@@ -35,7 +35,7 @@ function getGrepArgument(framework) {
             return '--jasmineNodeOpts.grep';
     }
 }
-function next(configPath, specsDirPath, opts = {}) {
+function next(specFolderPath, specsDirPath, opts = {}) {
     if (!Array.isArray(specsDirPath) && !fs.existsSync(specsDirPath)) {
         throw new Error(`${specsDirPath} path to specs`);
     }
@@ -59,7 +59,7 @@ function next(configPath, specsDirPath, opts = {}) {
                             const itName = grepOpts.find((itName) => itName === queued);
                             if (itName) {
                                 runArgs[opts.grepArgument] = `'${itName}'`;
-                                const cmd = command_1.buildCommand(configPath, specFilePath, runArgs, envVars);
+                                const cmd = command_1.buildCommand(specFolderPath, specFilePath, runArgs, envVars);
                                 commands.push(cmd);
                             }
                         }
@@ -74,7 +74,7 @@ function next(configPath, specsDirPath, opts = {}) {
                     if (grepOpts) {
                         grepOpts.forEach((itName) => {
                             runArgs[opts.grepArgument] = `'${itName}'`;
-                            const cmd = command_1.buildCommand(configPath, specFilePath, runArgs, envVars);
+                            const cmd = command_1.buildCommand(specFolderPath, specFilePath, runArgs, envVars);
                             commands.push(cmd);
                         });
                     }
@@ -82,12 +82,12 @@ function next(configPath, specsDirPath, opts = {}) {
             }
             else {
                 commands.push(...files.map((specFilePath) => {
-                    return command_1.buildCommand(configPath, specFilePath, runArgs, envVars);
+                    return command_1.buildCommand(specFolderPath, specFilePath, runArgs, envVars);
                 }));
             }
             return {
                 executor: function (runnerOpts) {
-                    const runner = process_rerun_1.buildRunner(runnerOpts);
+                    const runner = process_rerun_1.getReruner(runnerOpts);
                     return {
                         execute: () => runner(commands)
                     };
@@ -96,7 +96,7 @@ function next(configPath, specsDirPath, opts = {}) {
         }
     };
 }
-function buildExecutor(pathToConfig, configPath) {
+function buildExecutor(pathToConfig, specFolderPath) {
     const supportedFrameworks = ['jasmine', 'mocha', 'jasmine2'];
     if (!fs.existsSync(pathToConfig)) {
         throw new Error(`${pathToConfig} path to config`);
@@ -121,14 +121,14 @@ function buildExecutor(pathToConfig, configPath) {
     }
     return {
         byIt: function (pattern) {
-            return next(pathToConfig, configPath, {
+            return next(pathToConfig, specFolderPath, {
                 pattern,
                 grepArgument: getGrepArgument(framework),
                 by: 'it',
             });
         },
         byFile: function () {
-            return next(pathToConfig, configPath);
+            return next(pathToConfig, specFolderPath);
         },
         asQueue: function (patternOrQueue, queue) {
             if (arguments.length === 1) {
@@ -138,7 +138,7 @@ function buildExecutor(pathToConfig, configPath) {
             if (!Array.isArray(queue)) {
                 throw new Error(`queue should be string[]`);
             }
-            return next(pathToConfig, configPath, {
+            return next(pathToConfig, specFolderPath, {
                 pattern: patternOrQueue,
                 grepArgument: getGrepArgument(framework),
                 queue,
